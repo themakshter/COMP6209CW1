@@ -157,7 +157,7 @@ public aspect RuntimeProfiling {
 			}
 
 		} catch (IOException ioe) {
-
+			ioe.printStackTrace();
 		}
 	}
 

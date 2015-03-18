@@ -64,7 +64,7 @@ public aspect RuntimeProfiling {
 		public double calculateStandardDeviation() {
 			double total = (double) 0;
 			for (Double d : completionTimes) {
-				total += (d - average) * (d - average);
+				total += Math.pow((d - average), 2);
 			}
 			standardDeviation = (double) Math
 					.sqrt((double) (total / (double) completionTimes.size()));

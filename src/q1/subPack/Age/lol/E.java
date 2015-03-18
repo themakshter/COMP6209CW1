@@ -3,6 +3,7 @@ package q1.subPack.Age.lol;
 public class E {
 	public int foo(int a) {
 		bar(1);
+		baz(2);
 		return 0;
 	}
 

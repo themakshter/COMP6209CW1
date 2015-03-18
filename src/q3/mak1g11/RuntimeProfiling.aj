@@ -29,7 +29,7 @@ public aspect RuntimeProfiling {
 			ints = new HashSet<Integer>();
 		}
 
-		public double average() {
+		public double calculateAverage() {
 			double total = (double) 0;
 			for (Double d : completionTimes) {
 				total += d;
@@ -38,7 +38,7 @@ public aspect RuntimeProfiling {
 			return average;
 		}
 
-		public double standardDeviation() {
+		public double calculateStandardDeviation() {
 			double total = (double) 0;
 			for (Double d : completionTimes) {
 				total += (d - average) * (d - average);
@@ -48,12 +48,11 @@ public aspect RuntimeProfiling {
 			return standardDeviation;
 		}
 
-		public double failureFrequency() {
+		public double calculateFailureFrequency() {
 			return failures / completionTimes.size() * 100;
 		}
 	}
 
-	
 	HashMap<String, Method> methods = new HashMap<String, Method>();
 
 	// To check our call
@@ -65,48 +64,48 @@ public aspect RuntimeProfiling {
 	pointcut mainMethod(): execution(public static * main(..));
 
 	int around(int i):q1Call(i){
-		//initialise variables
+		// initialise variables
 		long startTime, endTime;
 		double duration;
 		String methodName = thisJoinPoint.getSignature().toLongString();
 		Method method;
-		
-		//check for method already existing in map
+
+		// check for method already existing in map
 		if (methods.containsKey(methodName)) {
 			method = methods.get(methodName);
 		} else {
 			method = new Method(methodName);
 		}
-		
-		//start time
+
+		// start time
 		startTime = System.nanoTime();
-		
-		//add as number
+
+		// add as number
 		method.ints.add(i);
-				
-		//add input
-		if(method.input.containsKey(i)){
-			int temp = method.input.get(i)+1;
-			method.input.put(i,temp);
-		}else{
+
+		// add input
+		if (method.input.containsKey(i)) {
+			int temp = method.input.get(i) + 1;
+			method.input.put(i, temp);
+		} else {
 			method.input.put(i, 1);
 		}
-		int output = -1;	
+		int output = -1;
 		try {
 			output = proceed(i);
-			
-			//add as number
+
+			// add as number
 			method.ints.add(output);
-			
-			//add output
-			if(method.output.containsKey(output)){
-				int temp = method.output.get(output)+1;
-				method.output.put(output,temp);
-			}else{
+
+			// add output
+			if (method.output.containsKey(output)) {
+				int temp = method.output.get(output) + 1;
+				method.output.put(output, temp);
+			} else {
 				method.output.put(output, 1);
-			}			
+			}
 		} catch (Exception e) {
-			method.failures+=1;
+			method.failures += 1;
 			output = -1;
 		}
 		endTime = System.nanoTime();
@@ -115,29 +114,49 @@ public aspect RuntimeProfiling {
 		return output;
 	}
 
-
 	after():mainMethod(){
-		PrintWriter out,runtimes,failures;
-		try{
+		PrintWriter out, runtimes, failures;
+		try {
 			failures = new PrintWriter(new BufferedWriter(new FileWriter(
 					"failures.csv")));
 			failures.println("Method Name,Failure Frequncy(%)");
-			
+
 			runtimes = new PrintWriter(new BufferedWriter(new FileWriter(
 					"runtimes.csv")));
 			runtimes.println("Method Name,Average runtime (s), Standard Deviation (s)");
-			
-			for(String s: methods.keySet()){
+
+			for (String s : methods.keySet()) {
 				Method m = methods.get(s);
-				out = new PrintWriter(new BufferedWriter(new FileWriter(
-						s+"-hist.csv")));
-				
+				out = new PrintWriter(new BufferedWriter(new FileWriter(s
+						+ "-hist.csv")));
+				out.println("Integer,Input Frequency,Output Frequency");
+				int asInput, asOutput;
+				for (int i : m.ints) {
+					// for input
+					if (m.input.containsKey(i)) {
+						asInput = m.input.get(i);
+					} else {
+						asInput = 0;
+					}
+
+					// for output
+					if (m.input.containsKey(i)) {
+						asOutput = m.output.get(i);
+					} else {
+						asOutput = 0;
+					}
+
+					out.println(i + "," + asInput + "," + asOutput);
+				}
+
+				runtimes.println(s + "," + m.calculateAverage() + ","
+						+ m.calculateStandardDeviation());
+				failures.println(s + "," + m.calculateFailureFrequency());
+
 			}
-			
-			
-			
-		}catch(IOException ioe){
-			
+
+		} catch (IOException ioe) {
+
 		}
 	}
 

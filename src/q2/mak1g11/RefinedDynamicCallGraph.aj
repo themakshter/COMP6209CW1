@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 
 public aspect RefinedDynamicCallGraph {
-		
+
 	// Use of HashSet to store values only once
 	HashSet<String> nodes = new HashSet<String>();
 	HashSet<String> edges = new HashSet<String>();
@@ -30,24 +30,23 @@ public aspect RefinedDynamicCallGraph {
 		nodes.add(node);
 	}
 
-	// adding the edges
-	int around(int i):refinedQ1Call(i) && parentCheck(){
-		// we try adding the edges
-		try {
-			int j = proceed(i);
-			// parent method
-			String parent = thisEnclosingJoinPointStaticPart.getSignature()
-					.toLongString();
-			// current method
-			String child = thisJoinPointStaticPart.getSignature()
-					.toLongString();
-			edges.add(parent + "," + child);
-			return j;
+	before(): q1Call() && parentCheck(){
+		// parent method
+		String parent = thisEnclosingJoinPointStaticPart.getSignature()
+				.toLongString();
+		// current method
+		String child = thisJoinPointStaticPart.getSignature().toLongString();
+		edges.add(parent + "," + child);
 
-		} catch (java.lang.Exception e) {
-			//nothing is done if exception thrown
-			return 0;
-		}
+	}
+
+	after() throwing(java.lang.Exception e):q1Call() && parentCheck(){
+		// parent method
+		String parent = thisEnclosingJoinPointStaticPart.getSignature()
+				.toLongString();
+		// current method
+		String child = thisJoinPointStaticPart.getSignature().toLongString();
+		edges.remove(parent + "," + child);
 	}
 
 	// write to files

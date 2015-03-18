@@ -12,11 +12,12 @@ public aspect RuntimeProfiling {
 
 	/**
 	 * Class to keep track of and calculate different variables for profiling
+	 * 
 	 * @author Mohammad Ali
 	 *
 	 */
 	public class Method {
-		
+
 		String methodName;
 		HashMap<Integer, Integer> input;
 		HashMap<Integer, Integer> output;
@@ -28,7 +29,9 @@ public aspect RuntimeProfiling {
 
 		/**
 		 * Constructor for method
-		 * @param methodName name for method
+		 * 
+		 * @param methodName
+		 *            name for method
 		 */
 		public Method(String methodName) {
 			this.methodName = methodName;
@@ -41,6 +44,7 @@ public aspect RuntimeProfiling {
 
 		/**
 		 * Calculates average runtime of method
+		 * 
 		 * @return calculated average runtime
 		 */
 		public double calculateAverage() {
@@ -54,6 +58,7 @@ public aspect RuntimeProfiling {
 
 		/**
 		 * Calculates standard deviation for method
+		 * 
 		 * @return calculated standard deviation for method
 		 */
 		public double calculateStandardDeviation() {
@@ -61,13 +66,14 @@ public aspect RuntimeProfiling {
 			for (Double d : completionTimes) {
 				total += (d - average) * (d - average);
 			}
-			standardDeviation = (double) (total / (double) completionTimes
-					.size());
+			standardDeviation = (double) Math
+					.sqrt((double) (total / (double) completionTimes.size()));
 			return standardDeviation;
 		}
 
 		/**
 		 * Calculates failure frequency for method
+		 * 
 		 * @return calculated frequency for method
 		 */
 		public double calculateFailureFrequency() {
@@ -91,6 +97,7 @@ public aspect RuntimeProfiling {
 		double duration;
 		String methodName = thisJoinPoint.getSignature().toLongString();
 		Method method;
+		boolean threwEx = false;
 
 		// check for method already existing in map
 		if (methods.containsKey(methodName)) {
@@ -116,7 +123,6 @@ public aspect RuntimeProfiling {
 		int output = -1;
 		try {
 			output = proceed(i);
-
 			// add as number
 			method.ints.add(output);
 
@@ -127,21 +133,25 @@ public aspect RuntimeProfiling {
 			} else {
 				method.output.put(output, 1);
 			}
-		} catch (Exception e) {
-			method.failures += 1;
-			output = -1;
+			return output;
+		} finally {
+			endTime = System.nanoTime();
+			duration = (double) (endTime - startTime) / 1000000000;
+			method.completionTimes.add(duration);
+			// methods.put(methodName, method);
 		}
-		endTime = System.nanoTime();
-		duration = (double) (endTime - startTime) / 1000000000;
-		method.completionTimes.add(duration);
-		methods.put(methodName, method);
-		return output;
+	}
+
+	after() throwing(Exception e):q1Call(){
+		String methodName = thisJoinPoint.getSignature().toLongString();
+		Method m = methods.get(methodName);
+		m.failures += 1;
 	}
 
 	after():mainMethod(){
 		PrintWriter out, runtimes, failures;
 		try {
-			
+
 			failures = new PrintWriter(new BufferedWriter(new FileWriter(
 					"failures.csv")));
 			failures.println("Method Name,Failure Frequncy(%)");
@@ -150,15 +160,15 @@ public aspect RuntimeProfiling {
 					"runtimes.csv")));
 			runtimes.println("Method Name,Average runtime (s), Standard Deviation (s)");
 
-			//iterate through methods
+			// iterate through methods
 			for (String s : methods.keySet()) {
 				Method m = methods.get(s);
 				out = new PrintWriter(new BufferedWriter(new FileWriter(s
 						+ "-hist.csv")));
 				out.println("Integer,Input Frequency,Output Frequency");
 				int asInput, asOutput;
-				
-				//iterate through all unique integers used in method
+
+				// iterate through all unique integers used in method
 				for (int i : m.ints) {
 					// for input
 					if (m.input.containsKey(i)) {
@@ -176,22 +186,22 @@ public aspect RuntimeProfiling {
 
 					out.println(i + "," + asInput + "," + asOutput);
 				}
-				
-				//write runtime and failure values
+
+				// write runtime and failure values
 				runtimes.println(s + "," + m.calculateAverage() + ","
 						+ m.calculateStandardDeviation());
 				failures.println(s + "," + m.calculateFailureFrequency());
-				
+
 				out.flush();
 				out.close();
 			}
 
 			runtimes.flush();
 			runtimes.close();
-			
+
 			failures.flush();
 			failures.close();
-			
+
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}

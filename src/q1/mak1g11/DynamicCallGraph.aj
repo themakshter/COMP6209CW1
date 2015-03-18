@@ -31,11 +31,12 @@ public aspect DynamicCallGraph {
 	// adding the edges
 	before(): q1Call() && parentCheck(){
 		// parent method
-		String edge1 = thisEnclosingJoinPointStaticPart.getSignature()
+		String parent = thisEnclosingJoinPointStaticPart.getSignature()
 				.toLongString();
 		// current method
-		String edge2 = thisJoinPointStaticPart.getSignature().toLongString();
-		edges.add(edge1 + " -> " + edge2);
+		String child = thisJoinPointStaticPart.getSignature().toLongString();
+		edges.add(parent + "," + child);
+		
 	}
 
 	// write to files
@@ -57,7 +58,7 @@ public aspect DynamicCallGraph {
 			// write edges
 			out = new PrintWriter(new BufferedWriter(new FileWriter(
 					"q1-edges.csv")));
-			out.println("Edges");
+			out.println("Source Method,Target Method");
 
 			for (String edge : edges) {
 				out.println(edge);

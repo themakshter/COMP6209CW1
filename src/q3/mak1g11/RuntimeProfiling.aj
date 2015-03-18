@@ -63,7 +63,7 @@ public aspect RuntimeProfiling {
 	// Main method execution
 	pointcut mainMethod(): execution(public static * main(..));
 
-	int around(int i):q1Call(i){
+	int around(int i):refinedQ1Call(i){
 		// initialise variables
 		long startTime, endTime;
 		double duration;
@@ -75,6 +75,7 @@ public aspect RuntimeProfiling {
 			method = methods.get(methodName);
 		} else {
 			method = new Method(methodName);
+			methods.put(methodName, method);
 		}
 
 		// start time

@@ -30,6 +30,7 @@ public aspect RefinedDynamicCallGraph {
 		nodes.add(node);
 	}
 
+	// add the edges as they are
 	before(): q1Call() && parentCheck(){
 		// parent method
 		String parent = thisEnclosingJoinPointStaticPart.getSignature()
@@ -40,6 +41,7 @@ public aspect RefinedDynamicCallGraph {
 
 	}
 
+	// if exception is thrown - remove that specific edge
 	after() throwing(java.lang.Exception e):q1Call() && parentCheck(){
 		// parent method
 		String parent = thisEnclosingJoinPointStaticPart.getSignature()

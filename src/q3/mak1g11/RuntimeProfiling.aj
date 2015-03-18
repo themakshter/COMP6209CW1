@@ -97,8 +97,7 @@ public aspect RuntimeProfiling {
 		double duration;
 		String methodName = thisJoinPoint.getSignature().toLongString();
 		Method method;
-		boolean threwEx = false;
-
+		
 		// check for method already existing in map
 		if (methods.containsKey(methodName)) {
 			method = methods.get(methodName);
@@ -135,13 +134,14 @@ public aspect RuntimeProfiling {
 			}
 			return output;
 		} finally {
+			//calculate time at the end - this block of code is always performed
 			endTime = System.nanoTime();
 			duration = (double) (endTime - startTime) / 1000000000;
 			method.completionTimes.add(duration);
-			// methods.put(methodName, method);
 		}
 	}
 
+	// add failures if exception is thrown
 	after() throwing(Exception e):q1Call(){
 		String methodName = thisJoinPoint.getSignature().toLongString();
 		Method m = methods.get(methodName);

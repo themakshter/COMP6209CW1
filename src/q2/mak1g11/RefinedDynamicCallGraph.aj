@@ -15,6 +15,7 @@ public aspect RefinedDynamicCallGraph {
 	// To check our call
 	pointcut q1Call(): call(public int q1..*(int));
 
+	// refined call which gives us a variable to use for our around advice
 	pointcut refinedQ1Call(int i): call(public int q1..*(int)) && args(i);
 
 	// For check if mj within mi

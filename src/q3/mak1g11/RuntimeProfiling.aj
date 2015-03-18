@@ -10,7 +10,13 @@ import java.util.HashSet;
 
 public aspect RuntimeProfiling {
 
+	/**
+	 * Class to keep track of and calculate different variables for profiling
+	 * @author Mohammad Ali
+	 *
+	 */
 	public class Method {
+		
 		String methodName;
 		HashMap<Integer, Integer> input;
 		HashMap<Integer, Integer> output;
@@ -20,6 +26,10 @@ public aspect RuntimeProfiling {
 		double average;
 		double standardDeviation;
 
+		/**
+		 * Constructor for method
+		 * @param methodName name for method
+		 */
 		public Method(String methodName) {
 			this.methodName = methodName;
 			input = new HashMap<Integer, Integer>();
@@ -29,6 +39,10 @@ public aspect RuntimeProfiling {
 			ints = new HashSet<Integer>();
 		}
 
+		/**
+		 * Calculates average runtime of method
+		 * @return calculated average runtime
+		 */
 		public double calculateAverage() {
 			double total = (double) 0;
 			for (Double d : completionTimes) {
@@ -38,6 +52,10 @@ public aspect RuntimeProfiling {
 			return average;
 		}
 
+		/**
+		 * Calculates standard deviation for method
+		 * @return calculated standard deviation for method
+		 */
 		public double calculateStandardDeviation() {
 			double total = (double) 0;
 			for (Double d : completionTimes) {
@@ -48,6 +66,10 @@ public aspect RuntimeProfiling {
 			return standardDeviation;
 		}
 
+		/**
+		 * Calculates failure frequency for method
+		 * @return calculated frequency for method
+		 */
 		public double calculateFailureFrequency() {
 			return failures / completionTimes.size() * 100;
 		}
@@ -119,6 +141,7 @@ public aspect RuntimeProfiling {
 	after():mainMethod(){
 		PrintWriter out, runtimes, failures;
 		try {
+			
 			failures = new PrintWriter(new BufferedWriter(new FileWriter(
 					"failures.csv")));
 			failures.println("Method Name,Failure Frequncy(%)");
@@ -127,12 +150,15 @@ public aspect RuntimeProfiling {
 					"runtimes.csv")));
 			runtimes.println("Method Name,Average runtime (s), Standard Deviation (s)");
 
+			//iterate through methods
 			for (String s : methods.keySet()) {
 				Method m = methods.get(s);
 				out = new PrintWriter(new BufferedWriter(new FileWriter(s
 						+ "-hist.csv")));
 				out.println("Integer,Input Frequency,Output Frequency");
 				int asInput, asOutput;
+				
+				//iterate through all unique integers used in method
 				for (int i : m.ints) {
 					// for input
 					if (m.input.containsKey(i)) {
@@ -151,6 +177,7 @@ public aspect RuntimeProfiling {
 					out.println(i + "," + asInput + "," + asOutput);
 				}
 				
+				//write runtime and failure values
 				runtimes.println(s + "," + m.calculateAverage() + ","
 						+ m.calculateStandardDeviation());
 				failures.println(s + "," + m.calculateFailureFrequency());

@@ -46,6 +46,7 @@ public aspect DynamicCallGraph {
 			out = new PrintWriter(new BufferedWriter(new FileWriter(
 					"q1-nodes.csv")));
 			out.println("Nodes");
+			
 			for (String node : nodes) {
 				out.println(node);
 			}

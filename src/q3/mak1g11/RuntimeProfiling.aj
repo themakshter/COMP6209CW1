@@ -87,7 +87,7 @@ public aspect RuntimeProfiling {
 		// add input
 		if (method.input.containsKey(i)) {
 			int temp = method.input.get(i) + 1;
-			method.input.put(i, temp);
+			method.input.replace(i, temp);
 		} else {
 			method.input.put(i, 1);
 		}
@@ -101,7 +101,7 @@ public aspect RuntimeProfiling {
 			// add output
 			if (method.output.containsKey(output)) {
 				int temp = method.output.get(output) + 1;
-				method.output.put(output, temp);
+				method.output.replace(output, temp);
 			} else {
 				method.output.put(output, 1);
 			}
@@ -112,6 +112,7 @@ public aspect RuntimeProfiling {
 		endTime = System.nanoTime();
 		duration = (double) (endTime - startTime) / 1000000000;
 		method.completionTimes.add(duration);
+		methods.put(methodName, method);
 		return output;
 	}
 
@@ -141,7 +142,7 @@ public aspect RuntimeProfiling {
 					}
 
 					// for output
-					if (m.input.containsKey(i)) {
+					if (m.output.containsKey(i)) {
 						asOutput = m.output.get(i);
 					} else {
 						asOutput = 0;
@@ -149,13 +150,21 @@ public aspect RuntimeProfiling {
 
 					out.println(i + "," + asInput + "," + asOutput);
 				}
-
+				
 				runtimes.println(s + "," + m.calculateAverage() + ","
 						+ m.calculateStandardDeviation());
 				failures.println(s + "," + m.calculateFailureFrequency());
-
+				
+				out.flush();
+				out.close();
 			}
 
+			runtimes.flush();
+			runtimes.close();
+			
+			failures.flush();
+			failures.close();
+			
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}

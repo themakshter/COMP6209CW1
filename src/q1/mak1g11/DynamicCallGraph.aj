@@ -24,7 +24,6 @@ public aspect DynamicCallGraph {
 	// adding the nodes
 	before(): q1Call(){
 		String node = thisJoinPoint.getSignature().toLongString();
-		// System.out.println(node);
 		nodes.add(node);
 	}
 
@@ -36,7 +35,7 @@ public aspect DynamicCallGraph {
 		// current method
 		String child = thisJoinPointStaticPart.getSignature().toLongString();
 		edges.add(parent + "," + child);
-		
+
 	}
 
 	// write to files
@@ -47,7 +46,7 @@ public aspect DynamicCallGraph {
 			out = new PrintWriter(new BufferedWriter(new FileWriter(
 					"q1-nodes.csv")));
 			out.println("Nodes");
-			
+
 			for (String node : nodes) {
 				out.println(node);
 			}
